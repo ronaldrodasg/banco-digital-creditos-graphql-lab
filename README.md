@@ -1,105 +1,314 @@
-# Banco Digital - Laboratorio Creditos GraphQL
+# Banco Digital - Módulo de Gestión de Créditos con GraphQL
 
-> Extension del primer laboratorio de banco en linea para gestionar creditos con GraphQL, Docker y observabilidad.
+Proyecto desarrollado para el curso de Arquitectura de Software.
 
-## Acceso rapido
-
-- GraphQL: http://localhost:8080/graphql
-- GraphiQL: http://localhost:8080/graphiql
-- Frontend opcional: http://localhost:8080/creditos.html
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3001
-
-## Ejecucion
-
-```powershell
-docker compose down -v --remove-orphans
-docker compose build --no-cache
-docker compose up -d
-```
-
-La documentacion especifica del laboratorio esta en `docs/lab-creditos/README-LAB-CREDITOS.md`.
+Este laboratorio amplía una aplicación de banco digital incorporando un módulo de gestión de créditos basado en GraphQL, con persistencia en PostgreSQL, despliegue mediante Docker Compose y observabilidad utilizando Prometheus y Grafana.
 
 ---
 
-# Banco Digital
+## Integrantes
 
-Backend REST de un sistema de banca digital que permite gestionar clientes, cuentas y transacciones con autenticacion basada en JWT.
+- Bryan David Molina Domínguez
+- David Julián Penagos Arroyave
+- Cristian Echeverry
+- Ronald Rodas Goez
 
-**Equipo:** mista · mafe · bryan · xiomi · cristian  
-**Documentacion completa:** [docs/index.md](docs/index.md)
+**Profesor:** Diego José Luis Botía Valderrama
 
 ---
 
-[![CI](https://github.com/Mista299/fe-banco-digital-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/Mista299/fe-banco-digital-backend/actions/workflows/ci.yml)
-[![JaCoCo Coverage](https://img.shields.io/badge/coverage-61.48%25-yellow.svg)](target/site/jacoco/index.html)
+## Descripción del Proyecto
 
-**Nota:** se añadieron tests y un workflow CI que ejecuta la suite de pruebas y publica los reportes de JaCoCo y Surefire como artefactos. El workflow no bloquea merges por ahora.
+El sistema permite administrar créditos asociados a clientes registrados en el banco digital mediante una API GraphQL.
+
+Entre las funcionalidades implementadas se encuentran:
+
+- Registro de créditos.
+- Consulta de créditos por cliente.
+- Consulta de créditos por estado.
+- Agrupación de créditos por categoría.
+- Cambio de estado de créditos.
+- Persistencia de información en PostgreSQL.
+- Monitoreo mediante Prometheus.
+- Visualización de métricas en Grafana.
+
+---
+
+## Tecnologías Utilizadas
+
+### Backend
+
+- Java 21
+- Spring Boot
+- Spring GraphQL
+- Spring Data JPA
+- Spring Actuator
+- Micrometer
+
+### Base de Datos
+
+- PostgreSQL 16
+
+### Observabilidad
+
+- Prometheus
+- Grafana
+
+### Contenedores
+
+- Docker
+- Docker Compose
+
+---
 
 ## Arquitectura
 
-![Diagrama de paquetes y componentes](docs/diagrams/package-components.png)
-
-> Detalle completo en [docs/architecture.md](docs/architecture.md)
-
-## Estructura del proyecto
-
-```
-banco-digital/
-├── src/
-│   ├── main/
-│   │   ├── java/fe/banco_digital/
-│   │   │   ├── controller/     # Endpoints REST
-│   │   │   ├── dto/            # Objetos de entrada y salida de los endpoints
-│   │   │   ├── entity/         # Clases que representan las tablas de la base de datos
-│   │   │   ├── exception/      # Excepciones personalizadas y manejo global de errores
-│   │   │   ├── mapper/         # Conversion entre entidades y DTOs
-│   │   │   ├── repository/     # Consultas a la base de datos
-│   │   │   ├── security/       # Configuracion JWT y filtros de seguridad
-│   │   │   ├── service/        # Logica de negocio (interfaz + implementacion)
-│   │   │   └── web/            # Clase principal de la aplicacion
-│   │   └── resources/
-│   │       └── application.properties   # Configuracion de Spring (DB, JPA, JWT)
-│   └── test/                   # Tests de integracion
-│
-├── docs/                       # Documentacion del proyecto
-│   ├── guides/                 # Guias practicas (inicio rapido, API, flujo Git)
-│   ├── modules/                # Descripcion de cada modulo de negocio
-│   ├── decisions/              # Decisiones de arquitectura (ADRs)
-│   ├── diagrams/               # Diagramas de arquitectura, base de datos y autenticacion
-│   └── arqui/                  # Entregables formales del sprint
-│
-├── .agents/                    # Contexto e instrucciones para Claude Code
-├── scripts/                    # Scripts de utilidad
-├── pom.xml                     # Dependencias y configuracion de Maven
-└── scripts/run.sh              # Script para levantar la aplicacion
+```text
+┌───────────────┐
+│    Cliente    │
+│ GraphiQL/Web  │
+└───────┬───────┘
+        │
+        ▼
+┌─────────────────────┐
+│ Spring Boot + GraphQL│
+│      Puerto 8080     │
+└───────┬──────────────┘
+        │
+ ┌──────┴──────┐
+ ▼             ▼
+PostgreSQL   Prometheus
+5432         9090
+                │
+                ▼
+            Grafana
+             3001
 ```
 
-## QA y cobertura
+---
 
+## Modelo de Dominio
+
+### Crédito
+
+Un cliente puede tener múltiples créditos.
+
+### Tipos de Crédito
+
+- PERSONAL
+- HIPOTECARIO
+- VEHICULAR
+- EDUCATIVO
+- LIBRE_INVERSION
+
+### Estados del Crédito
+
+- APROBADO
+- PENDIENTE
+- RECHAZADO
+- EN_ESTUDIO
+
+---
+
+## API GraphQL
+
+### Queries
+
+```graphql
+creditoPorId(id: ID!)
+
+creditosPorCliente(documentoCliente: String!)
+
+creditosPorEstado(estado: EstadoCredito!)
+
+creditosPorCategoria(tipo: TipoCredito)
+
+tiposCredito
+
+estadosCredito
+```
+
+### Mutations
+
+```graphql
+otorgarCredito(input: OtorgarCreditoInput!)
+
+cambiarEstadoCredito(
+  id: ID!,
+  estado: EstadoCredito!,
+  observacion: String
+)
+```
+
+---
+
+## Ejemplo: Crear Crédito
+
+```graphql
+mutation {
+  otorgarCredito(
+    input: {
+      documentoCliente: "123456789"
+      tipo: PERSONAL
+      monto: 8500000
+      plazoMeses: 36
+      tasaInteresAnual: 19.5
+      estado: EN_ESTUDIO
+      destinoCredito: "Capital de trabajo"
+      observacion: "Creado desde GraphiQL"
+    }
+  ) {
+    id
+    idCredito
+    tipo
+    estado
+    monto
+  }
+}
+```
+
+---
+
+## Ejemplo: Consultar Créditos por Cliente
+
+```graphql
+query {
+  creditosPorCliente(documentoCliente: "123456789") {
+    id
+    idCredito
+    tipo
+    estado
+    monto
+  }
+}
+```
+
+---
+
+## Ejemplo: Consultar Créditos por Estado
+
+```graphql
+query {
+  creditosPorEstado(estado: EN_ESTUDIO) {
+    id
+    idCredito
+    tipo
+    estado
+    monto
+  }
+}
+```
+
+---
+
+## Despliegue con Docker
+
+### Construir y levantar servicios
 
 ```bash
-./mvnw.cmd -DskipTests=false test
+docker compose down -v --remove-orphans
+
+docker compose build --no-cache
+
+docker compose up -d
+
+docker compose ps
 ```
 
-	- Surefire reports: `target/surefire-reports`
-	- JaCoCo HTML: `target/site/jacoco/index.html` (CSV: `target/site/jacoco/jacoco.csv`)
+---
 
-	- SonarCloud: recomendado para quality gates y cobertura. Pasos rápidos:
-		1. Crear cuenta y proyecto en https://sonarcloud.io (usar GitHub login).
-		2. Añadir secret `SONAR_TOKEN` en GitHub (Settings → Secrets) con el token de SonarCloud.
-		3. Actualizar `.github/workflows/ci.yml` (ya incluí un step `SonarCloud Scan`) reemplazando `YOUR_ORG` y `YOUR_PROJECT_KEY`.
-		4. Ejecutar CI; en SonarCloud verás las métricas y se generará el badge.
+## Servicios Disponibles
 
-	- Ejemplo badge SonarCloud (reemplaza `ORG_KEY`):
+| Servicio | URL |
+|-----------|------|
+| GraphiQL | http://localhost:8080/graphiql?path=/graphql |
+| GraphQL API | http://localhost:8080/graphql |
+| Frontend Créditos | http://localhost:8080/creditos.html |
+| Actuator Health | http://localhost:8080/actuator/health |
+| Actuator Prometheus | http://localhost:8080/actuator/prometheus |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3001 |
 
-```markdown
-[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=ORG_KEY&metric=coverage)](https://sonarcloud.io/summary/overview?id=ORG_KEY)
+---
+
+## Observabilidad
+
+El proyecto incorpora métricas técnicas y de negocio mediante Micrometer.
+
+### Métricas personalizadas
+
+#### Créditos otorgados
+
+```text
+banco_creditos_otorgados_total
 ```
-## Cambios realizados
 
-- Añadidos tests unitarios y de integración bajo `src/test/java` (cobertura y validación de handlers, seguridad y servicios).  
-- Añadido workflow CI: `.github/workflows/ci.yml` (runs tests, publica artefactos).  
+Etiquetas:
 
-No se modificó lógica del backend; solo se añadieron tests y archivos de CI/reporting.
+- tipo
+- estado
 
+#### Cambios de estado
+
+```text
+banco_creditos_cambio_estado_total
+```
+
+#### Consultas por ID
+
+```text
+banco_creditos_consultas_id_total
+```
+
+---
+
+## Estructura del Proyecto
+
+```text
+src
+├── main
+│   ├── java
+│   │   ├── graphql
+│   │   │   └── CreditoGraphQLController.java
+│   │   ├── service
+│   │   │   └── CreditoServiceImpl.java
+│   │   ├── entity
+│   │   │   └── Credito.java
+│   │   └── repository
+│   ├── resources
+│   │   ├── graphql
+│   │   │   └── schema.graphqls
+│   │   └── static
+│   │       └── creditos.html
+│
+monitoring
+├── prometheus
+│   └── prometheus.yml
+│
+Dockerfile
+docker-compose.yml
+```
+
+---
+
+## Resultados
+
+✔ Implementación completa de GraphQL (Schema, Queries y Mutations)
+
+✔ Gestión de créditos y estados
+
+✔ Persistencia con PostgreSQL
+
+✔ Despliegue con Docker Compose
+
+✔ Monitoreo con Prometheus
+
+✔ Visualización de métricas con Grafana
+
+✔ Frontend de pruebas para operaciones GraphQL
+
+---
+
+## Conclusiones
+
+La solución desarrollada demuestra la integración de GraphQL con Spring Boot en una arquitectura moderna basada en contenedores. Además, incorpora mecanismos de observabilidad que permiten monitorear el comportamiento del sistema en tiempo real mediante Prometheus y Grafana, facilitando la administración y seguimiento de las operaciones de crédito.
