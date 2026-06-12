@@ -1,0 +1,68 @@
+type Query {
+  creditoPorId(id: ID!): Credito
+  creditosPorCliente(documentoCliente: String!): [Credito!]!
+  creditosPorEstado(estado: EstadoCredito!): [Credito!]!
+  creditosPorCategoria(tipo: TipoCredito): [CategoriaCredito!]!
+  tiposCredito: [TipoCredito!]!
+  estadosCredito: [EstadoCredito!]!
+}
+
+type Mutation {
+  otorgarCredito(input: OtorgarCreditoInput!): Credito!
+  cambiarEstadoCredito(id: ID!, estado: EstadoCredito!, observacion: String): Credito!
+}
+
+type Credito {
+  id: ID!
+  idCredito: ID!
+  cliente: ClienteCredito!
+  tipo: TipoCredito!
+  estado: EstadoCredito!
+  monto: Float!
+  plazoMeses: Int!
+  tasaInteresAnual: Float!
+  destinoCredito: String
+  observacion: String
+  fechaSolicitud: String!
+  fechaActualizacion: String!
+}
+
+type ClienteCredito {
+  idCliente: ID!
+  nombre: String!
+  documento: String!
+  email: String!
+  telefono: String
+}
+
+type CategoriaCredito {
+  tipo: TipoCredito!
+  total: Int!
+  creditos: [Credito!]!
+}
+
+input OtorgarCreditoInput {
+  documentoCliente: String!
+  tipo: TipoCredito!
+  monto: Float!
+  plazoMeses: Int!
+  tasaInteresAnual: Float!
+  estado: EstadoCredito
+  destinoCredito: String
+  observacion: String
+}
+
+enum TipoCredito {
+  PERSONAL
+  HIPOTECARIO
+  VEHICULAR
+  EDUCATIVO
+  LIBRE_INVERSION
+}
+
+enum EstadoCredito {
+  APROBADO
+  PENDIENTE
+  RECHAZADO
+  EN_ESTUDIO
+}

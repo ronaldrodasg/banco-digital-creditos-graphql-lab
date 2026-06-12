@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Banco Digital - Creditos GraphQL</title>
+  <style>
+    :root { --bg:#070a12; --panel:#111827; --line:#263447; --text:#f8fafc; --muted:#94a3b8; --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b; }
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top left,#14213d,#070a12 52%);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
+    header{padding:28px 34px;border-bottom:1px solid var(--line);background:rgba(8,13,25,.82);backdrop-filter: blur(10px)}
+    h1{margin:0;font-size:32px;letter-spacing:.04em}.tag{color:var(--accent);font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.24em}.names{margin-top:8px;color:var(--muted);font-size:14px}
+    main{display:grid;grid-template-columns:420px 1fr;gap:20px;padding:24px}.card{background:rgba(17,24,39,.88);border:1px solid var(--line);box-shadow:0 0 30px rgba(56,189,248,.08);padding:20px;border-radius:18px}
+    label{display:block;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin:12px 0 6px} input,select,textarea{width:100%;padding:12px 13px;background:#030712;border:1px solid #334155;color:var(--text);border-radius:10px} textarea{min-height:80px}
+    button{width:100%;margin-top:16px;padding:13px 16px;border:0;border-radius:10px;background:linear-gradient(90deg,#0ea5e9,#7c3aed);color:white;font-weight:800;cursor:pointer} button.secondary{background:#1f2937;border:1px solid #475569}
+    pre{white-space:pre-wrap;word-break:break-word;min-height:420px;margin:0;background:#020617;border:1px solid #334155;border-radius:14px;padding:18px;color:#d1fae5;font-size:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.status{display:flex;gap:10px;align-items:center;color:var(--ok);font-weight:700;margin-top:10px}.dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 14px var(--ok)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="tag">Laboratorio opcional - Banco en linea + GraphQL + Docker + Observabilidad</div>
+    <h1>Gestion de Creditos - Banco Digital</h1>
+    <div class="names">Bryan David Molina Dominguez · David Julian Penagos Arroyave · Cristian Echeverry · Ronald Rodas</div>
+    <div class="status"><span class="dot"></span> API GraphQL lista en /graphql · Metricas en /actuator/prometheus · Grafana en puerto 3001</div>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Otorgar credito</h2>
+      <label>Documento cliente</label><input id="documento" value="123456789" />
+      <div class="grid"><div><label>Tipo</label><select id="tipo"><option>PERSONAL</option><option>HIPOTECARIO</option><option>VEHICULAR</option><option>EDUCATIVO</option><option>LIBRE_INVERSION</option></select></div><div><label>Estado</label><select id="estado"><option>EN_ESTUDIO</option><option>APROBADO</option><option>PENDIENTE</option><option>RECHAZADO</option></select></div></div>
+      <div class="grid"><div><label>Monto</label><input id="monto" type="number" value="8500000" /></div><div><label>Plazo meses</label><input id="plazo" type="number" value="36" /></div></div>
+      <label>Tasa interes anual</label><input id="tasa" type="number" value="19.5" step="0.1" />
+      <label>Destino credito</label><textarea id="destino">Capital de trabajo y gastos personales</textarea>
+      <button onclick="otorgarCredito()">Ejecutar mutation otorgarCredito</button>
+      <button class="secondary" onclick="consultarPorCliente()">Consultar creditos por cliente</button>
+      <button class="secondary" onclick="listarPorCategoria()">Listar creditos por categoria</button>
+    </section>
+    <section class="card"><h2>Respuesta JSON</h2><pre id="out">Esperando ejecucion...</pre></section>
+  </main>
+<script>
+async function gql(query, variables={}){
+  const res = await fetch('/graphql',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,variables})});
+  const data = await res.json(); document.getElementById('out').textContent = JSON.stringify(data,null,2);
+}
+function otorgarCredito(){
+  gql(`mutation Otorgar($input: OtorgarCreditoInput!){ otorgarCredito(input:$input){ id tipo estado monto plazoMeses tasaInteresAnual destinoCredito fechaSolicitud cliente{ nombre documento email } } }`,
+  {input:{documentoCliente:document.getElementById('documento').value,tipo:document.getElementById('tipo').value,monto:Number(document.getElementById('monto').value),plazoMeses:Number(document.getElementById('plazo').value),tasaInteresAnual:Number(document.getElementById('tasa').value),estado:document.getElementById('estado').value,destinoCredito:document.getElementById('destino').value,observacion:'Creado desde frontend opcional del laboratorio'}})
+}
+function consultarPorCliente(){gql(`query($doc:String!){ creditosPorCliente(documentoCliente:$doc){ id tipo estado monto plazoMeses cliente{ nombre documento } } }`,{doc:document.getElementById('documento').value})}
+function listarPorCategoria(){gql(`query{ creditosPorCategoria{ tipo total creditos{ id estado monto cliente{ nombre documento } } } }`)}
+</script>
+</body>
+</html>

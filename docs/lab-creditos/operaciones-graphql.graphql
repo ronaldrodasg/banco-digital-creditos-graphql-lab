@@ -1,0 +1,66 @@
+# 1. Otorgar credito
+mutation {
+  otorgarCredito(input: {
+    documentoCliente: "123456789"
+    tipo: PERSONAL
+    monto: 8500000
+    plazoMeses: 36
+    tasaInteresAnual: 19.5
+    estado: EN_ESTUDIO
+    destinoCredito: "Capital de trabajo y gastos personales"
+    observacion: "Creado desde Apollo Sandbox"
+  }) {
+    id
+    tipo
+    estado
+    monto
+    plazoMeses
+    tasaInteresAnual
+    cliente { nombre documento email }
+  }
+}
+
+# 2. Consultar estado de un credito
+query {
+  creditoPorId(id: 1) {
+    id
+    tipo
+    estado
+    observacion
+    cliente { nombre documento }
+  }
+}
+
+# 3. Listar creditos agrupados por categoria
+query {
+  creditosPorCategoria {
+    tipo
+    total
+    creditos {
+      id
+      estado
+      monto
+      cliente { nombre documento }
+    }
+  }
+}
+
+# 4. Consultar creditos por cliente
+query {
+  creditosPorCliente(documentoCliente: "123456789") {
+    id
+    tipo
+    estado
+    monto
+    cliente { nombre documento }
+  }
+}
+
+# 5. Cambiar estado
+mutation {
+  cambiarEstadoCredito(id: 1, estado: APROBADO, observacion: "Aprobado despues del analisis de riesgo") {
+    id
+    estado
+    observacion
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Backend UP",
+      "targets": [
+        {
+          "expr": "up{job=\"banco-digital-backend\"}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Peticiones HTTP por segundo",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=\"banco-digital\"}[1m]))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 6,
+        "y": 0
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Latencia promedio HTTP",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_sum{application=\"banco-digital\"}[1m])) / sum(rate(http_server_requests_seconds_count{application=\"banco-digital\"}[1m]))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Uso de JVM Memory",
+      "targets": [
+        {
+          "expr": "sum(jvm_memory_used_bytes{application=\"banco-digital\"})",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Creditos otorgados por tipo",
+      "targets": [
+        {
+          "expr": "sum by (tipo) (increase(banco_creditos_otorgados_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Consultas GraphQL de creditos",
+      "targets": [
+        {
+          "expr": "sum(increase(banco_creditos_consultas_cliente_total[5m])) + sum(increase(banco_creditos_consultas_categoria_total[5m])) + sum(increase(banco_creditos_consultas_estado_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "spring-boot",
+    "banco-digital",
+    "prometheus"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "title": "Banco Digital - GraphQL Creditos y Observabilidad",
+  "uid": "banco-digital-creditos-graphql",
+  "version": 1
+}
